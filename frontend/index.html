@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LibroVerse | Library Management System</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="center-screen">
+    <div class="glass auth-card">
+        <h2 id="form-title">Welcome Back 👋</h2>
+        <p class="auth-subtitle" id="form-subtitle">Login to continue to LibroVerse</p>
+
+        <div id="alert-box"></div>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="login-email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" style="display:none;">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="reg-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="reg-email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="reg-phone" placeholder="9876543210">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg-password" placeholder="Minimum 6 characters" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label>Register as</label>
+                <select id="reg-role">
+                    <option value="student">Student / Member</option>
+                    <option value="admin">Admin / Librarian</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="register-btn">Create Account</button>
+        </form>
+
+        <p class="switch-link" id="switch-text">
+            Don't have an account? <a id="switch-link">Register now</a>
+        </p>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+let isLoginMode = true;
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const switchLink = document.getElementById('switch-link');
+const switchText = document.getElementById('switch-text');
+const formTitle = document.getElementById('form-title');
+const formSubtitle = document.getElementById('form-subtitle');
+const alertBox = document.getElementById('alert-box');
+
+// Redirect if already logged in
+if (getToken()) {
+    const user = getUser();
+    window.location.href = user && user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+}
+
+function toggleMode() {
+    isLoginMode = !isLoginMode;
+    alertBox.innerHTML = '';
+    if (isLoginMode) {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        formTitle.textContent = 'Welcome Back 👋';
+        formSubtitle.textContent = 'Login to continue to LibroVerse';
+        switchText.innerHTML = `Don't have an account? <a id="switch-link">Register now</a>`;
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        formTitle.textContent = 'Join LibroVerse 📚';
+        formSubtitle.textContent = 'Create your library membership account';
+        switchText.innerHTML = `Already have an account? <a id="switch-link">Login here</a>`;
+    }
+}
+
+// Event delegation: works even after switch-link's innerHTML is replaced
+switchText.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'switch-link') toggleMode();
+});
+
+function showAlert(message, type = 'error') {
+    alertBox.innerHTML = `<div class="alert alert-${type === 'error' ? 'error' : 'success'}">${message}</div>`;
+}
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Logging in...';
+    alertBox.innerHTML = '';
+
+    try {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const data = await apiCall('/auth/login', 'POST', { email, password });
+        saveSession(data.token, data.user);
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+            window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+        }, 600);
+    } catch (err) {
+        showAlert(err.message);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Login';
+    }
+});
+
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('register-btn');
+    btn.disabled = true; btn.textContent = 'Creating account...';
+    alertBox.innerHTML = '';
+
+    try {
+        const full_name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const phone = document.getElementById('reg-phone').value;
+        const password = document.getElementById('reg-password').value;
+        const role = document.getElementById('reg-role').value;
+
+        await apiCall('/auth/register', 'POST', { full_name, email, phone, password, role });
+        showAlert('Registration successful! Please login now.', 'success');
+        setTimeout(() => {
+            switchLink.click();
+            document.getElementById('login-email').value = email;
+        }, 1000);
+    } catch (err) {
+        showAlert(err.message);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Create Account';
+    }
+});
+</script>
+</body>
+</html>

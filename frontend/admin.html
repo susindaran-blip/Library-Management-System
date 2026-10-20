@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | LibroVerse</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="brand">📚 LibroVerse Admin</div>
+    <div class="nav-links">
+        <a href="#" class="tab-nav active" data-tab="overview">Overview</a>
+        <a href="#" class="tab-nav" data-tab="books">Manage Books</a>
+        <a href="#" class="tab-nav" data-tab="borrows">Borrow Records</a>
+        <a href="#" class="tab-nav" data-tab="users">Users</a>
+        <button id="logout-btn">Logout</button>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- ============ OVERVIEW TAB ============ -->
+    <div id="tab-overview">
+        <div class="section-title"><h2>Dashboard Overview</h2></div>
+        <div class="stats-grid" id="stats-grid"><div class="loader"><div class="spinner"></div></div></div>
+
+        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="glass chart-box"><h3 style="margin-bottom:14px; font-size:15px;">Most Borrowed Books</h3><canvas id="topBooksChart"></canvas></div>
+            <div class="glass chart-box"><h3 style="margin-bottom:14px; font-size:15px;">Category Distribution</h3><canvas id="categoryChart"></canvas></div>
+        </div>
+        <div class="glass chart-box" style="margin-top:20px;">
+            <h3 style="margin-bottom:14px; font-size:15px;">Monthly Borrowing Trend</h3>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- ============ MANAGE BOOKS TAB ============ -->
+    <div id="tab-books" style="display:none;">
+        <div class="section-title">
+            <h2>Manage Books</h2>
+            <button class="btn btn-primary btn-sm" onclick="openAddBookModal()">+ Add New Book</button>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="admin-search" placeholder="🔍 Search books...">
+        </div>
+        <div class="glass" style="overflow-x:auto; padding:10px;">
+            <table>
+                <thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Copies</th><th>Rating</th><th>Actions</th></tr></thead>
+                <tbody id="admin-books-tbody"><tr><td colspan="6"><div class="loader"><div class="spinner"></div></div></td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============ BORROW RECORDS TAB ============ -->
+    <div id="tab-borrows" style="display:none;">
+        <div class="section-title"><h2>All Borrow Records</h2></div>
+        <div class="glass" style="overflow-x:auto; padding:10px;">
+            <table>
+                <thead><tr><th>Book</th><th>User</th><th>Borrowed</th><th>Due</th><th>Status</th><th>Fine</th></tr></thead>
+                <tbody id="admin-borrows-tbody"><tr><td colspan="6"><div class="loader"><div class="spinner"></div></div></td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============ USERS TAB ============ -->
+    <div id="tab-users" style="display:none;">
+        <div class="section-title"><h2>Registered Users</h2></div>
+        <div class="glass" style="overflow-x:auto; padding:10px;">
+            <table>
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr></thead>
+                <tbody id="admin-users-tbody"><tr><td colspan="6"><div class="loader"><div class="spinner"></div></div></td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============ ADD/EDIT BOOK MODAL ============ -->
+<div class="modal-overlay" id="book-form-modal" style="display:none;">
+    <div class="glass modal-content" style="position:relative; max-width:520px;">
+        <button class="modal-close" id="close-book-form">✕</button>
+        <h3 style="margin-bottom:18px;" id="book-form-title">Add New Book</h3>
+
+        <div class="form-group">
+            <label>ISBN (optional — auto-fetch details from Google Books)</label>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="f-isbn" placeholder="e.g. 9780062315007">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="fetchByISBN()">🔍 Auto-fill</button>
+            </div>
+        </div>
+        <div class="form-group"><label>Title *</label><input type="text" id="f-title" required></div>
+        <div class="form-group"><label>Author *</label><input type="text" id="f-author" required></div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="f-category"><option value="">Select category</option></select>
+        </div>
+        <div class="form-group"><label>Publisher</label><input type="text" id="f-publisher"></div>
+        <div class="form-group"><label>Published Year</label><input type="number" id="f-year"></div>
+        <div class="form-group"><label>Total Copies</label><input type="number" id="f-copies" value="1" min="1"></div>
+        <div class="form-group"><label>Shelf Location</label><input type="text" id="f-shelf" placeholder="e.g. A1-01"></div>
+        <div class="form-group"><label>Cover Image URL</label><input type="text" id="f-cover"></div>
+        <div class="form-group"><label>Description</label><textarea id="f-description" rows="3"></textarea></div>
+
+        <input type="hidden" id="f-book-id">
+        <button class="btn btn-primary" onclick="saveBook()" id="save-book-btn">Save Book</button>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
